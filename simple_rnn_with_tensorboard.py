@@ -8,6 +8,8 @@ from torch.utils.data import DataLoader, dataloader
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms 
 
+from torch.utils.tensorboard import SummaryWriter
+
 #Creating a fully connected network 
 
 #For Changing to LSTM , GRU just change to nn.LSTM or nn.GRU instead of nn.RNN
@@ -64,13 +66,14 @@ test_loader = DataLoader(dataset =test_data,batch_size=batch_size ,shuffle=True)
 
 #Define Model
 model = RNN(input_size=input_size,num_classes=num_classes,hidden_size=hidden_size,num_layers=num_layers).to(device=device)
-
+writer = SummaryWriter(f'runs/MNIST/tensorboardTrial')
 #Loss and Optimizer
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(),lr = learning_rate)
 
 #Train Network
 #Input format of tensor will look like = (64,1,28,28)
+step = 0
 for epoch in range(num_epochs):
     for batch_idx,(data,targets) in enumerate(train_loader):
         
@@ -91,6 +94,16 @@ for epoch in range(num_epochs):
 
         #Gradient Descent
         optimizer.step()
+
+        #Calculating Running Loss
+        _,preds = logits.max(1)
+        num_correct = (preds==targets).sum()
+        running_training_accuracy = num_correct/data.shape[0]
+
+        writer.add_scalar('Traning Loss',loss,global_step=step)
+        writer.add_scalar('Training Accuracy',running_training_accuracy,global_step=step)
+        step+=1
+
     print(f'Epoch {epoch} Completed')
 
 
