@@ -56,7 +56,12 @@ class mnistData(pl.LightningDataModule):
         return DataLoader(list(zip(data,ground_truth)),batch_size=64,num_workers=4)
     
 
-trainer = Trainer(auto_lr_find = True)
+trainer = Trainer()
 model = LitModel(1)
 dataModule = mnistData()
-trainer.tune(model,datamodule=dataModule)
+
+lr_finder = trainer.tuner.lr_find(model,datamodule=dataModule)
+
+# Plot with
+fig = lr_finder.plot(suggest=True)
+fig.savefig('lr_results.png')
